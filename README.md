@@ -2,7 +2,9 @@
 
 A comprehensive Big Data pipeline that extracts, analyzes, and visualizes public sentiment about Indian government schemes using news articles and Reddit comments. Built using Apache Spark, Spark NLP, MongoDB, MapReduce, and Apache Pig, the system transforms unstructured text into policy-relevant insights.
 
-![Architecture](./assets/System_architecture.png)
+<p align="center">
+  <img src="./assets/System_architecture.png" alt="System Architecture" width="600">
+</p>
 
 ---
 
