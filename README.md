@@ -60,3 +60,28 @@ A comprehensive Big Data pipeline that extracts, analyzes, and visualizes public
 ├── assets/
 │   └── system_architecture.png
 └── README.md
+
+Project Summary: Voices and Views
+This project performs sentiment analysis on public opinions about Indian Government Schemes using data from News articles and Reddit comments. It combines Big Data technologies, NLP models, and visual analytics to derive insights that can help policymakers understand public perception.
+
+🔍 Key Features:
+Data Collection: NewsAPI for articles, Reddit API for comments.
+
+Preprocessing & NLP: Spark NLP pipelines clean and embed text using Universal Sentence Encoder.
+
+Sentiment Analysis: Pretrained deep learning model (sentimentdl_use_twitter) classifies opinions as Positive or Negative.
+
+Storage: MongoDB stores cleaned and labeled data. HDFS supports batch processing.
+
+Batch Analytics: Apache Pig and MapReduce analyze word frequency and sentiment trends.
+
+Visualization: Sentiment distributions and keyword clouds shown via Matplotlib and Seaborn.
+
+📈 Output:
+Stacked bar charts showing positive vs negative sentiment per scheme.
+
+Word clouds and trend graphs for scheme-specific insights.
+
+MongoDB collections contain cleaned and labeled sentiment data.
+
+⚡ This modular pipeline allows real-time extension to new schemes, platforms, and languages.
