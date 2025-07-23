@@ -390,18 +390,6 @@ if selected_sentiments:
 
 st.markdown(f"### Showing {len(filtered_df)} results")
 
-# Data Table
-st.dataframe(filtered_df, use_container_width=True)
-
-# Download Button
-csv = filtered_df.to_csv(index=False).encode('utf-8')
-st.download_button(
-    label="Download Filtered Data as CSV",
-    data=csv,
-    file_name='sentiment_results.csv',
-    mime='text/csv'
-)
-
 # Colorful palette for all graphs
 color_palette = sns.color_palette("Set2")
 
@@ -606,115 +594,6 @@ if not news_reddit_df.empty:
     - Use this to compare with platform-specific or scheme-specific trends above.
     """)
 
-# --- Show Top Positive/Negative Messages for Each Scheme (News + Reddit Combined) ---
-st.subheader("Top Positive/Negative Messages by Scheme (News + Reddit Combined)")
-news_reddit_df = filtered_df[filtered_df['platform'].isin(['News', 'Reddit'])]
-
-# Get available schemes that have data
-available_schemes = news_reddit_df['scheme_name'].dropna().unique()
-if len(available_schemes) > 0:
-    for scheme in available_schemes:
-        scheme_df = news_reddit_df[news_reddit_df['scheme_name'] == scheme]
-        
-        # Only proceed if we have data for this scheme
-        if len(scheme_df) > 0:
-            st.markdown(f"### {scheme}")
-            col1, col2 = st.columns(2)
-            
-            # Top 5 Positive messages with clear sentiment indicators
-            pos_msgs = scheme_df[scheme_df['sentiment_label'].str.upper() == 'POSITIVE']
-            pos_msgs = pos_msgs[pos_msgs['description'].apply(lambda x: is_relevant_message(x, scheme))]
-            
-            if not pos_msgs.empty:
-                # Calculate intuitive sentiment scores
-                pos_msgs = pos_msgs.copy()
-                pos_msgs['intuitive_score'] = pos_msgs['description'].apply(
-                    lambda x: get_sentiment_score(x, 'POSITIVE')
-                )
-                
-                # Get top 5 based on intuitive score
-                top_pos = pos_msgs.nlargest(5, 'intuitive_score')
-                
-                with col1:
-                    st.markdown("**Top 5 Most Positive Messages:**")
-                    if len(top_pos) > 0:
-                        for i, row in top_pos.iterrows():
-                            original_score = row.get('sentiment_score', 'N/A')
-                            platform = row.get('platform', 'Unknown')
-                            description = row['description']
-                            
-                            # Highlight positive keywords in the text
-                            positive_keywords = ['great', 'excellent', 'amazing', 'wonderful', 'fantastic', 
-                                               'good', 'beneficial', 'helpful', 'success', 'effective', 
-                                               'useful', 'appreciate', 'love', 'like', 'thank']
-                            
-                            # Truncate and show message
-                            display_text = description[:250] + "..." if len(description) > 250 else description
-                            
-                            st.write(f"**{platform}** - {display_text}")
-                            
-                            # Show original sentiment score for reference
-                            if original_score != 'N/A':
-                                st.caption(f"Original Score: {original_score:.3f}")
-                            st.write("---")
-                    else:
-                        st.write("No clear positive messages found for this scheme.")
-            else:
-                with col1:
-                    st.markdown("**Top 5 Most Positive Messages:**")
-                    st.write("No positive messages found for this scheme.")
-            
-            # Top 5 Negative messages with clear sentiment indicators
-            neg_msgs = scheme_df[scheme_df['sentiment_label'].str.upper() == 'NEGATIVE']
-            neg_msgs = neg_msgs[neg_msgs['description'].apply(lambda x: is_relevant_message(x, scheme))]
-            
-            if not neg_msgs.empty:
-                # Calculate intuitive sentiment scores
-                neg_msgs = neg_msgs.copy()
-                neg_msgs['intuitive_score'] = neg_msgs['description'].apply(
-                    lambda x: get_sentiment_score(x, 'NEGATIVE')
-                )
-                
-                # Get top 5 based on intuitive score
-                top_neg = neg_msgs.nlargest(5, 'intuitive_score')
-                
-                with col2:
-                    st.markdown("**Top 5 Most Negative Messages:**")
-                    if len(top_neg) > 0:
-                        for i, row in top_neg.iterrows():
-                            original_score = row.get('sentiment_score', 'N/A')
-                            platform = row.get('platform', 'Unknown')
-                            description = row['description']
-                            
-                            # Truncate and show message
-                            display_text = description[:250] + "..." if len(description) > 250 else description
-                            
-                            st.write(f"**{platform}** - {display_text}")
-                            
-                            # Show original sentiment score for reference
-                            if original_score != 'N/A':
-                                st.caption(f"Original Score: {original_score:.3f}")
-                            st.write("---")
-                    else:
-                        st.write("No clear negative messages found for this scheme.")
-            else:
-                with col2:
-                    st.markdown("**Top 5 Most Negative Messages:**")
-                    st.write("No negative messages found for this scheme.")
-                    
-            # Add summary insights for each scheme
-            total_pos = len(scheme_df[scheme_df['sentiment_label'].str.upper() == 'POSITIVE'])
-            total_neg = len(scheme_df[scheme_df['sentiment_label'].str.upper() == 'NEGATIVE'])
-            
-            st.info(f"""
-            **{scheme} Summary:**
-            - Positive messages: {total_pos}
-            - Negative messages: {total_neg}
-            - The messages above are selected based on clear sentiment indicators to help you understand public perception.
-            """)
-else:
-    st.warning("No schemes available to display top messages.")
-
 # --- Word Clouds for Each Sentiment and Scheme ---
 st.subheader("Word Clouds by Sentiment and Scheme")
 
@@ -762,3 +641,21 @@ if len(available_schemes) > 0:
                         st.info("No text data available for word cloud generation")
 else:
     st.warning("No schemes available to display word clouds.")
+
+# Updated Scheme Comparison Tool without navigation
+st.title("Scheme Comparison Tool")
+all_schemes = sorted(all_df['scheme_name'].dropna().unique())
+selected_schemes = st.sidebar.multiselect("Select Schemes to Compare", all_schemes, default=all_schemes[:2])
+
+if len(selected_schemes) >= 2:
+    comparison_df = all_df[all_df['scheme_name'].isin(selected_schemes)]
+    st.subheader(f"Sentiment Comparison Between Selected Schemes")
+    fig, ax = plt.subplots(figsize=(12, 6))
+    sns.countplot(data=comparison_df, x='scheme_name', hue='sentiment_label', ax=ax, palette=color_palette)
+    ax.set_title("Sentiment Comparison Between Selected Schemes")
+    ax.set_xlabel("Scheme")
+    ax.set_ylabel("Number of Messages")
+    plt.xticks(rotation=45, ha='right')
+    st.pyplot(fig)
+else:
+    st.warning("Please select at least two schemes to compare.")
